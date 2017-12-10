@@ -21,6 +21,59 @@ contract Transaction {
 
   uint transactionCounter;
 
+  // fetch the number of transactions in the contract
+  function getNumberOfTransactions() public view returns (uint) {
+    return transactionCounter;
+  }
+
+  // fetch and return all sales of the seller
+  function getSales() public view returns (uint[]) {
+    // prepare output array
+    uint[] memory transactionIds = new uint[](transactionCounter);
+
+    uint numberOfSales = 0;
+
+    // iterate over transactions
+    for(uint i = 1; i <= transactionCounter; i++) {
+      // keep the ID if the transaction owns to the seller
+      if(transactions[i].seller == msg.sender) {
+        transactionIds[numberOfSales] = transactions[i].id;
+        numberOfSales++;
+      }
+    }
+
+    // copy the transactionIds array into a smaller getSales array
+    uint[] memory sales = new uint[](numberOfSales);
+    for(uint j = 0; j < numberOfSales; j++) {
+      sales[j] = transactionIds[j];
+    }
+    return sales;
+  }
+
+  // fetch and return all purchases of the buyer
+  function getPurchases() public view returns (uint[]) {
+    // prepare output array
+    uint[] memory transactionIds = new uint[](transactionCounter);
+
+    uint numberOfBuy = 0;
+
+    // iterate over transactions
+    for(uint i = 1; i <= transactionCounter; i++) {
+      // keep the ID if the transaction owns to the seller
+      if(transactions[i].buyer == msg.sender) {
+        transactionIds[numberOfBuy] = transactions[i].id;
+        numberOfBuy++;
+      }
+    }
+
+    // copy the transactionIds array into a smaller getBuy array
+    uint[] memory buy = new uint[](numberOfBuy);
+    for(uint j = 0; j < numberOfBuy; j++) {
+      buy[j] = transactionIds[j];
+    }
+    return buy;
+  }
+
   // new transaction / buy item
   function buyItem(address _seller, bytes16 _itemId, bytes8 _typeItem, bytes32 _location, bytes16 _pictureHash, bytes32 _comment, uint256 _price) payable public {
     // address not null
