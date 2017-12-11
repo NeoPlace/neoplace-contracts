@@ -21,6 +21,15 @@ contract Transaction {
 
   uint transactionCounter;
 
+  // events
+  event BuyItem(
+    uint indexed _id,
+    bytes16 indexed _itemId,
+    address _seller,
+    address _buyer,
+    uint256 _price
+  );
+
   // fetch the number of transactions in the contract
   function getNumberOfTransactions() public view returns (uint) {
     return transactionCounter;
@@ -109,5 +118,8 @@ contract Transaction {
       ""
     );
 
+    // trigger the new transaction
+    BuyItem(transactionCounter, _itemId, _seller, msg.sender, _price);
   }
+  
 }
