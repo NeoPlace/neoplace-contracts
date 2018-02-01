@@ -18,6 +18,7 @@ contract Transaction {
 
   // state variables
   mapping(uint => TransactionNeoPlace) public transactions;
+  mapping(bytes16 => uint256) public fundsLocked;
 
   uint transactionCounter;
 
@@ -98,7 +99,9 @@ contract Transaction {
 
     require(msg.value == _price);
 
-    _seller.transfer(msg.value);
+    // lock and put the funds in escrow
+    //_seller.transfer(msg.value);
+    fundsLocked[_itemId]=fundsLocked[_itemId] + _price;
 
     // new transaction
     transactionCounter++;
@@ -121,5 +124,22 @@ contract Transaction {
     // trigger the new transaction
     BuyItem(transactionCounter, _itemId, _seller, msg.sender, _price);
   }
-  
+
+  function unlockFunds(bytes16 _itemId) public {
+    for(uint i = 0; i <= transactionCounter; i++) {
+      if(transactions[i].itemId == _itemId) {
+
+        require(msg.sender == transactions[i].buyer);
+        uint256 priceTransaction = transactions[i]._price;
+
+        require(fundsLocked[_itemId]>0);
+        fundsLocked[_itemId]=fundsLocked[_itemId] - (priceTransaction);
+
+        //transfer fund from client to vendor
+        seller.transfer(priceTransaction);
+        break;
+      }
+    }
+  }
+
 }
