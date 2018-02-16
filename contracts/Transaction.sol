@@ -1,4 +1,30 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.19;
+
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
 
 contract Ownable {
   // state variables
@@ -33,12 +59,12 @@ contract Transaction is Ownable {
     address buyer;
     bytes16 itemId;
     bytes8 typeItem;
-    bytes32 location;
-    bytes16 pictureHash;
+    string location;
+    string pictureHash;
     bytes16 receiptHash;
-    bytes32 comment;
-    uint256 _price;
+    string comment;
     bytes8 status;
+    uint256 _price;
   }
 
   // state variables
@@ -114,7 +140,7 @@ contract Transaction is Ownable {
   }
 
   // new transaction / buy item
-  function buyItem(address _seller, bytes16 _itemId, bytes8 _typeItem, bytes32 _location, bytes16 _pictureHash, bytes32 _comment, uint256 _price) payable public {
+  function buyItem(address _seller, bytes16 _itemId, bytes8 _typeItem, string _location, string _pictureHash, string _comment, bytes8 _status, uint256 _price) payable public {
     // address not null
     require(_seller != 0x0);
     // seller don't allow to buy his own item
@@ -122,11 +148,12 @@ contract Transaction is Ownable {
 
     require(_itemId.length > 0);
     require(_typeItem.length > 0);
-    require(_location.length > 0);
-    require(_pictureHash.length > 0);
-    require(_comment.length > 0);
+    require(bytes(_location).length > 0);
+    require(bytes(_pictureHash).length > 0);
+    //require(bytes(_comment).length > 0);
 
     require(msg.value == _price);
+
 
     // lock and put the funds in escrow
     //_seller.transfer(msg.value);
@@ -146,15 +173,17 @@ contract Transaction is Ownable {
       _pictureHash,
       "",
       _comment,
-      _price,
-      ""
+      _status,
+      _price
     );
 
     // trigger the new transaction
     BuyItem(transactionCounter, _itemId, _seller, msg.sender, _price);
   }
 
+
   function unlockFunds(bytes16 _itemId) public {
+
     for(uint i = 0; i <= transactionCounter; i++) {
       if(transactions[i].itemId == _itemId) {
 
@@ -166,8 +195,22 @@ contract Transaction is Ownable {
 
         //transfer fund from client to vendor
         seller.transfer(priceTransaction);
+
+        transactions[i].status = stringToBytes8('paid');
+
         break;
       }
+    }
+  }
+
+  function stringToBytes8(string memory source) returns (bytes8 result) {
+    bytes memory tempEmptyStringTest = bytes(source);
+    if (tempEmptyStringTest.length == 0) {
+      return 0x0;
+    }
+
+    assembly {
+      result := mload(add(source, 8))
     }
   }
 
