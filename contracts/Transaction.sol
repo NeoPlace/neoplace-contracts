@@ -1,6 +1,31 @@
 pragma solidity ^0.4.4;
 
-contract Transaction {
+contract Ownable {
+  // state variables
+  address owner;
+
+  // modifiers
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  // constructor
+  function Ownable() public {
+    owner = msg.sender;
+  }
+
+  /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+  function transferOwnership(address newOwner) onlyOwner {
+    owner = newOwner;
+  }
+
+}
+
+contract Transaction is Ownable {
   // custom types
   struct TransactionNeoPlace {
     uint id;
@@ -30,6 +55,10 @@ contract Transaction {
     address _buyer,
     uint256 _price
   );
+
+  function kill() public onlyOwner {
+    selfdestruct(owner);
+  }
 
   // fetch the number of transactions in the contract
   function getNumberOfTransactions() public view returns (uint) {
